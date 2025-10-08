@@ -1,0 +1,47 @@
+Underlay controle plane - OSPF
+
+net add loopback lo ip address 10.0.0.102/32                                   # Création loopback 10.0.0.103/32
+net add interface swp1 ip address 10.0.0.102/32                                # IP unnumbered sur port swp1
+net add interface swp2 ip address 10.0.0.102/32                                # IP unnumbered sur port swp2
+
+net add ospf router-id 10.0.0.102                                              # OSPF router-id 
+
+net add interface swp1 ospf area 0                                             # Activation OSPF sur le port swp1
+net add interface swp1 ospf network point-to-point                             # OSPF network point-to-point
+net add interface swp2 ospf area 0                                             # Activation OSPF sur le port swp2
+net add interface swp2 ospf network point-to-point                             # OSPF network point-to-point
+net add loopback lo ospf area 0                                                # Activation OSPF sur la loopback lo
+
+Overlay control plane - BGP EVPN
+
+net add loopback lo ip address 172.16.0.102/32                                 # Création loopback 172.16.0.103/32
+
+net add bgp autonomous-system 65000                                            # BGP ASN 65000
+net add bgp router-id 172.16.0.102                                             # BGP router-id
+
+net add bgp neighbor 172.16.0.11 remote-as internal                            # Session BGP vers SPINE11
+net add bgp neighbor 172.16.0.12 remote-as internal                            # Session BGP vers SPINE12
+
+net add bgp neighbor 172.16.0.11 update-source 172.16.0.102                    # Source-IP pour la session BGP
+net add bgp neighbor 172.16.0.12 update-source 172.16.0.102                    # Source-IP pour la session BGP
+
+net add bgp evpn neighbor 172.16.0.11 activate                                 # Activation SAFI EVPN
+net add bgp evpn neighbor 172.16.0.12 activate                                 # Activation SAFI EVPN
+
+net add bgp evpn advertise-all-vni                                             # Annonce les routes EVPN et les VNIs
+
+
+Overlay Data plane - VXLAN
+
+net add loopback lo ip address 192.168.0.102/32                                # Création loopback 192.168.0.102/32
+net add loopback lo vxlan local-tunnelip 192.168.0.102                         # Configuration IP source du tunnel Vxlan (VTEP)
+
+net add interface swp3 bridge access 30                                        # Configuration ports swp3 en acces 30
+net add interface swp4 bridge access 40                                        # Configuration ports swp4 en acces 40
+														                       
+net add vxlan vni300 vxlan id 300                                              # Création l2VNI
+net add vxlan vni400 vxlan id 400                                              # Création l2VNI
+														                       
+net add vxlan vni300 bridge access 30                                          # Mappage du l2vni VNI300 au vlan 30
+net add vxlan vni400 bridge access 40                                          # Mappage du l2vni VNI400 au vlan 40
+														                       
